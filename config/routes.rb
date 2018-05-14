@@ -5,6 +5,7 @@ Rails.application.routes.draw do
       resources :moderators
       resources :games
       resources :users
+      resources :sessions
     end
   end
 end
