@@ -1,24 +1,48 @@
 class Api::V1::UsersController < ApplicationController
   def create
+    if params[:type] == "login"
+      login(params)
+    elsif params[:type] == "signup"
+      signup(params)
+    else
+      render json: {
+        loggedIn: false,
+        errors: "No request type matches '#{params[:type]}'"
+      }
+    end
+  end
+
+  def login(params)
     user = User.find_by(username: params[:username])
     if user
-      auth = user.authenticate(params[:password])
-      # if auth
-      #   session[:current_user_id] = user.id
-      #   puts session
-      # end
+      auth = user.authenticate(params[:password]) || (user.password_digest == params[:pd])
       render json: {
         logged_in: !!auth,
+        auth: user.password_digest,
         errors: !!auth ? nil : "Incorrect Password for #{params[:username]}"
+      }
+    else
+      render json: {
+        logged_in: false,
+        errors: "No user found with username '#{params[:username]}'"
+      }
+    end
+  end
+
+  def signup(params)
+    user = User.find_by(username: params[:username])
+    if user
+      render json: {
+        logged_in: false,
+        errors: "User already exists with username '#{params[:username]}'"
       }
     else
       user = User.new(username: params[:username], password: params[:password])
       if user.save
-        # session[:current_user_id] = user.id
-        # puts session
         render json: {
           logged_in: true,
-          user: user.username
+          auth: user.password_digest,
+          errors: ""
         }
       else
         render json: {
