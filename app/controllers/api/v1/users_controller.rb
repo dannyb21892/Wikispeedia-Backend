@@ -4,6 +4,13 @@ class Api::V1::UsersController < ApplicationController
       login(params)
     elsif params[:type] == "signup"
       signup(params)
+    elsif params[:type] == "checkUser"
+      user = User.find_by(username: params[:username])
+      username = user ? user.username : nil
+      render json: {
+        userExists: !!user,
+        username: username
+      }
     else
       render json: {
         loggedIn: false,
