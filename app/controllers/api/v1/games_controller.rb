@@ -1,7 +1,7 @@
 class Api::V1::GamesController < ApplicationController
   def create
     if params[:type] == "checkGame"
-      game = Game.find_by(title: params[:title])
+      game = Game.all.select{|g| g.title.downcase == params[:title].downcase}[0]
       suggestions = Game.all.select{|game| game.title.downcase.include?(params[:title].downcase) || params[:title].downcase.include?(game.title.downcase)}
       title = game ? game.title : nil
       id = game ? game.id : nil
@@ -31,6 +31,13 @@ class Api::V1::GamesController < ApplicationController
         success: !!newgame
       }
     end
+  end
+
+  def show
+    matches = Game.game_from_slug(params[:id])
+    render json: {
+      matches: matches
+    }
   end
 
 end
