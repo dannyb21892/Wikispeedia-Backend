@@ -6,6 +6,8 @@ Rails.application.routes.draw do
       resources :games
       resources :users
       resources :sessions
+      resources :headings
+      resources :articles
     end
   end
 end
