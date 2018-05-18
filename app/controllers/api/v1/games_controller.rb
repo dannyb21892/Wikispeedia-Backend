@@ -38,10 +38,18 @@ class Api::V1::GamesController < ApplicationController
     end
   end
 
-  def show
-    match = Slug.find_by(name: params[:id]) #params[:id] is the slug from the URL
+  def index
+    games = Game.all.map{|game| {title: game.title, release_year: game.release_year, slug: (game.slug ? game.slug.name : nil)}}
     render json: {
-      match: match.game
+      games: games
+    }
+  end
+
+  def show
+    match = Slug.find_by(name: params[:id])#params[:id] is the slug from the URL
+    output = match ? match.game : nil
+    render json: {
+      match: output
     }
   end
 
