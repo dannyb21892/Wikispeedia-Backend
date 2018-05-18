@@ -8,6 +8,7 @@ Rails.application.routes.draw do
       resources :sessions
       resources :headings
       resources :articles
+      resources :slugs
     end
   end
 end

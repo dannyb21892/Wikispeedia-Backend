@@ -22,11 +22,16 @@ class Api::V1::GamesController < ApplicationController
       params[:headings].each do |heading|
         Heading.create(name: heading, game_id: newgame.id)
       end
+      puts "controller received slug #{params[:slug]}"
+      newslug = Slug.make_unique(params[:slug], newgame)
+      Slug.create(name: newslug, game_id: newgame.id)
+
       render json: {
         game: {
           title: newgame.title,
           moderators: newgame.users,
-          headings: newgame.headings
+          headings: newgame.headings,
+          slug: newgame.slug
         },
         success: !!newgame
       }
@@ -34,9 +39,9 @@ class Api::V1::GamesController < ApplicationController
   end
 
   def show
-    matches = Game.game_from_slug(params[:id])
+    match = Slug.find_by(name: params[:id]) #params[:id] is the slug from the URL
     render json: {
-      matches: matches
+      match: match.game
     }
   end
 
