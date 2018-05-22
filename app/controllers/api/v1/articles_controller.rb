@@ -5,18 +5,25 @@ class Api::V1::ArticlesController < ApplicationController
       if slug
         game = slug.game
         article = game.articles.select{|a| a.title.downcase == params[:article].downcase}[0]
+        articles = game.headings.map{|h| h.articles}
       end
       if article
         render json: {
           success: true,
           markdown: article.content,
           html: article.html_content,
-          title: article.title
+          title: article.title,
+          headings: game.headings,
+          articles: articles,
+          game: game
         }
       else
         render json: {
           success: false,
-          errors: "No article by that name found"
+          errors: "No article by that name found",
+          headings: game.headings,
+          articles: articles,
+          game: game
         }
       end
     elsif params[:type] == "updateArticle"
