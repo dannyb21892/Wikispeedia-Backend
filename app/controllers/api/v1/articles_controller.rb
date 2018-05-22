@@ -30,7 +30,8 @@ class Api::V1::ArticlesController < ApplicationController
         render json: {
           success: true,
           markdown: article.content,
-          html: article.html_content
+          html: article.html_content,
+          title: article.title
         }
       else
         render json: {
