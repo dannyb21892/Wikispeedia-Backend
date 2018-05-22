@@ -5,14 +5,15 @@ class Api::V1::ArticlesController < ApplicationController
       if slug
         game = slug.game
         article = game.articles.select{|a| a.title.downcase == params[:article].downcase}[0]
+        edit = article.latestApprovedEdit || article
         articles = game.headings.map{|h| h.articles}
       end
-      if article
+      if edit
         render json: {
           success: true,
-          markdown: article.content,
-          html: article.html_content,
-          title: article.title,
+          markdown: edit.content,
+          html: edit.html_content,
+          title: edit.title,
           headings: game.headings,
           articles: articles,
           game: game
@@ -29,11 +30,12 @@ class Api::V1::ArticlesController < ApplicationController
     elsif params[:type] == "updateArticle"
       game = Slug.find_by(name: params[:game]).game
       article = game.articles.select{|a| a.title.downcase == params[:article].downcase}[0]
-
-      article.content = params[:content]
-      article.html_content = params[:html_content]
-      article.title = params[:title]
-      if article.save
+      newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
+      # article.content = params[:content]
+      # article.html_content = params[:html_content]
+      # article.title = params[:title]
+      if edit.save
+        article = article.latestApprovedEdit || article
         render json: {
           success: true,
           markdown: article.content,
@@ -50,7 +52,10 @@ class Api::V1::ArticlesController < ApplicationController
       game = Slug.find_by(name: params[:game]).game
       heading = game.headings.select{|h| h.name == params[:heading]}[0]
       article = Article.new(title: params[:title], heading_id: heading.id, content: params[:content], html_content: params[:html_content])
-      if article.save
+      article.save
+      newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
+      if edit.save
+        article = article.latestApprovedEdit || article
         render json: {
           success: true,
           title: article.title,
