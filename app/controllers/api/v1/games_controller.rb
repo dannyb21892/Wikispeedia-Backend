@@ -3,15 +3,18 @@ class Api::V1::GamesController < ApplicationController
     if params[:type] == "checkGame"
       game = Game.all.select{|g| g.title.downcase == params[:title].downcase}[0]
       suggestions = Game.all.select{|game| game.title.downcase.include?(params[:title].downcase) || params[:title].downcase.include?(game.title.downcase)}
+      slugs = suggestions.map{|s| s.slug}
       title = game ? game.title : nil
       id = game ? game.id : nil
+      slug = game ? game.slug : nil
       render json: {
         gameAlreadyExists: !!game,
         game: {
           title: title,
-          id: id
+          id: id,
+          slug: slug
         },
-        suggestions: suggestions
+        suggestions: {games: suggestions, slugs: slugs}
       }
     elsif params[:type] == "createGame"
       newgame = Game.create(title: params[:title], release_year: params[:year].to_i)

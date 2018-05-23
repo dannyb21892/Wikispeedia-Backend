@@ -31,10 +31,7 @@ class Api::V1::ArticlesController < ApplicationController
       game = Slug.find_by(name: params[:game]).game
       article = game.articles.select{|a| a.title.downcase == params[:article].downcase}[0]
       newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
-      # article.content = params[:content]
-      # article.html_content = params[:html_content]
-      # article.title = params[:title]
-      if edit.save
+      if newEdit.save
         article = article.latestApprovedEdit || article
         render json: {
           success: true,
@@ -54,7 +51,7 @@ class Api::V1::ArticlesController < ApplicationController
       article = Article.new(title: params[:title], heading_id: heading.id, content: params[:content], html_content: params[:html_content])
       article.save
       newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
-      if edit.save
+      if newEdit.save
         article = article.latestApprovedEdit || article
         render json: {
           success: true,
