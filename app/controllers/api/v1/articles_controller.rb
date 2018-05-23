@@ -7,6 +7,7 @@ class Api::V1::ArticlesController < ApplicationController
         article = game.articles.select{|a| a.title.downcase == params[:article].downcase}[0]
         edit = article.latestApprovedEdit || article
         articles = game.headings.map{|h| h.articles}
+        approved_edits = article.approvedEdits || [article]
       end
       if edit
         render json: {
@@ -14,6 +15,7 @@ class Api::V1::ArticlesController < ApplicationController
           markdown: edit.content,
           html: edit.html_content,
           title: edit.title,
+          approvedEdits: approved_edits, 
           headings: game.headings,
           articles: articles,
           game: game
