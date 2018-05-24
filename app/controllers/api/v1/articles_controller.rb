@@ -15,7 +15,7 @@ class Api::V1::ArticlesController < ApplicationController
           markdown: edit.content,
           html: edit.html_content,
           title: edit.title,
-          approvedEdits: approved_edits, 
+          approvedEdits: approved_edits,
           headings: game.headings,
           articles: articles,
           game: game
@@ -32,8 +32,9 @@ class Api::V1::ArticlesController < ApplicationController
     elsif params[:type] == "updateArticle"
       game = Slug.find_by(name: params[:game]).game
       article = game.articles.select{|a| a.title.downcase == params[:article].downcase}[0]
-      newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
+      newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "pending")
       if newEdit.save
+        puts newEdit
         article = article.latestApprovedEdit || article
         render json: {
           success: true,
