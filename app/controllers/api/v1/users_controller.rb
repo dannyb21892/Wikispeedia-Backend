@@ -12,7 +12,8 @@ class Api::V1::UsersController < ApplicationController
         username: username
       }
     elsif params[:type] == "checkNotifications"
-      out = User.find_by(username: params[:username]).notifications
+      user = User.find_by(username: params[:username])
+      out = user ? user.notifications : []
       render json: {
         notifications: out
       }
