@@ -39,6 +39,8 @@ class Api::V1::ArticlesController < ApplicationController
         }
       end
     elsif params[:type] == "updateArticle"
+      puts "******************"
+      puts params
       game = Slug.find_by(name: params[:game]).game
       article = game.articles.select{|a| a.title.downcase == params[:article].downcase}[0]
       status = params[:moderator] ? "approved" : "pending"
