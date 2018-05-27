@@ -1,0 +1,2 @@
+class ArticleSlugsController < ApplicationController
+end

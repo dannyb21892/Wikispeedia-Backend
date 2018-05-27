@@ -1,7 +1,6 @@
 class Api::V1::ArticlesController < ApplicationController
   def create
     if params[:type] == "getArticle"
-      puts params
       slug = Slug.find_by(name: params[:game])
       whosAsking = User.find_by(username: params[:username])
       if slug
@@ -10,11 +9,13 @@ class Api::V1::ArticlesController < ApplicationController
         if whosAsking && whosAsking.games.include?(game)
           moderator = true
         end
-        article = game.articles.select{|a| a.title.downcase == params[:article].downcase}[0]
-        edit = article.latestApprovedEdit || article
+        article = game.articles.select{|a| a.article_slug.name.downcase == params[:article].downcase}[0]
         articles = game.headings.map{|h| h.articles}
-        approved_edits = article.approvedEdits || [article]
-        all_edits = article.editsSorted || [article]
+        if article
+          edit = article.latestApprovedEdit || article
+          approved_edits = article.approvedEdits || [article]
+          all_edits = article.editsSorted || [article]
+        end
       end
       if edit
         render json: {
@@ -25,6 +26,7 @@ class Api::V1::ArticlesController < ApplicationController
           approvedEdits: approved_edits,
           all_edits: all_edits,
           headings: game.headings,
+          heading: article.heading.name,
           articles: articles,
           game: game,
           moderator: moderator
@@ -39,12 +41,11 @@ class Api::V1::ArticlesController < ApplicationController
         }
       end
     elsif params[:type] == "updateArticle"
-      puts "******************"
-      puts params
       game = Slug.find_by(name: params[:game]).game
-      article = game.articles.select{|a| a.title.downcase == params[:article].downcase}[0]
+      article = game.articles.select{|a| a.title.downcase == params[:title].downcase}[0]
       status = params[:moderator] ? "approved" : "pending"
       newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: status)
+      slug = article.article_slug.name
       if newEdit.save
         puts newEdit
         article = article.latestApprovedEdit || article
@@ -52,7 +53,8 @@ class Api::V1::ArticlesController < ApplicationController
           success: true,
           markdown: article.content,
           html: article.html_content,
-          title: article.title
+          title: article.title,
+          slug: slug
         }
       else
         render json: {
@@ -66,6 +68,7 @@ class Api::V1::ArticlesController < ApplicationController
       status = params[:moderator] ? "approved" : "pending"
       article = Article.new(title: params[:title], heading_id: heading.id, content: params[:content], html_content: params[:html_content])
       article.save
+      slug = ArticleSlug.create(article_id: article.id, name: params[:slug])
       newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "status")
       if newEdit.save
         article = article.latestApprovedEdit || article
@@ -73,7 +76,8 @@ class Api::V1::ArticlesController < ApplicationController
           success: true,
           title: article.title,
           markdown: article.content,
-          html: article.html_content
+          html: article.html_content,
+          slug: slug.name
         }
       else
         render json: {
