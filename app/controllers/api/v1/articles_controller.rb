@@ -69,7 +69,7 @@ class Api::V1::ArticlesController < ApplicationController
       article = Article.new(title: params[:title], heading_id: heading.id, content: params[:content], html_content: params[:html_content])
       article.save
       slug = ArticleSlug.create(article_id: article.id, name: params[:slug])
-      newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "status")
+      newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
       if newEdit.save
         article = article.latestApprovedEdit || article
         render json: {

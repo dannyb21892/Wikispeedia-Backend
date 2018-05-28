@@ -2,6 +2,7 @@ class User < ApplicationRecord
   has_secure_password
   has_many :moderators
   has_many :games, through: :moderators
+  has_many :followers
   validates :username, presence: true
   validates :username, uniqueness: true
   validates :username, length: { minimum: 3, maximum: 20 }, on: :create
@@ -13,12 +14,16 @@ class User < ApplicationRecord
       g.articles.each do |a|
         a.editsSorted.each do |e|
           if e.status == "pending"
-            output.push({edit: e, url: "http://localhost:3001/games/#{e.article.heading.game.slug.name}/#{e.title}"})
+            output.push({edit: e, url: "http://localhost:3001/games/#{e.article.heading.game.slug.name}/"})
           end
         end
       end
     end
     return output.sort_by{|e| e[:edit].created_at}.reverse
+  end
+
+  def followed_games
+    this.followers.map{|f| f.game}
   end
 
 end

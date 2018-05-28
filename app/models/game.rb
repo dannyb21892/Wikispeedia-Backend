@@ -1,5 +1,6 @@
 class Game < ApplicationRecord
   has_many :moderators
+  has_many :followers
   has_many :users, through: :moderators
   has_many :headings
   has_many :articles, through: :headings
