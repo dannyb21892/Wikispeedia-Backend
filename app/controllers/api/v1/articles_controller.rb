@@ -9,6 +9,7 @@ class Api::V1::ArticlesController < ApplicationController
         if whosAsking && whosAsking.games.include?(game)
           moderator = true
         end
+        follower = !!whosAsking.followers.select{|f| f.game == game}[0]
         article = game.articles.select{|a| a.article_slug.name.downcase == params[:article].downcase}[0]
         articles = game.headings.map{|h| h.articles}
         if article
@@ -29,7 +30,8 @@ class Api::V1::ArticlesController < ApplicationController
           heading: article.heading.name,
           articles: articles,
           game: game,
-          moderator: moderator
+          moderator: moderator,
+          follower: follower
         }
       else
         render json: {
@@ -37,7 +39,9 @@ class Api::V1::ArticlesController < ApplicationController
           errors: "No article by that name found",
           headings: game.headings,
           articles: articles,
-          game: game
+          game: game,
+          moderator: moderator,
+          follower: follower
         }
       end
     elsif params[:type] == "updateArticle"

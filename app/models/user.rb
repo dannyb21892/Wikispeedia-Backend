@@ -23,7 +23,7 @@ class User < ApplicationRecord
   end
 
   def followed_games
-    this.followers.map{|f| f.game}
+    self.followers.map{|f| f.game}
   end
 
 end

@@ -38,14 +38,21 @@ class Api::V1::GamesController < ApplicationController
         },
         success: !!newgame
       }
+    elsif params[:type] == "home"
+      games = Game.all.map{|game| {title: game.title, release_year: game.release_year, slug: (game.slug ? game.slug.name : nil), articles: game.articles.length}}
+      output = games.sort_by{|g| g[:articles]}.reverse
+
+      render json: {
+        games: output
+      }
     end
   end
 
   def index
-    games = Game.all.map{|game| {title: game.title, release_year: game.release_year, slug: (game.slug ? game.slug.name : nil)}}
-    render json: {
-      games: games
-    }
+      games = Game.all.map{|game| {title: game.title, release_year: game.release_year, slug: (game.slug ? game.slug.name : nil)}}
+      render json: {
+        games: games
+      }
   end
 
   def show
