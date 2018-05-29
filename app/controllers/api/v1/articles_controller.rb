@@ -10,24 +10,37 @@ class Api::V1::ArticlesController < ApplicationController
           moderator = true
         end
         follower = !!whosAsking.followers.select{|f| f.game == game}[0]
-        article = game.articles.select{|a| a.article_slug.name.downcase == params[:article].downcase}[0]
-        articles = game.headings.map{|h| h.articles}
-        if article
-          edit = article.latestApprovedEdit || article
-          approved_edits = article.approvedEdits || [article]
-          all_edits = article.editsSorted || [article]
+        if params[:article].downcase === "home"
+          article = game.home
+          if article
+            edit = article.latestApprovedEdit || article
+            approved_edits = article.approvedEdits || [article]
+            all_edits = article.editsSorted || [article]
+            heading = ""
+            html = edit.htmml_content
+          end
+        else
+          article = game.articles.select{|a| a.article_slug.name.downcase == params[:article].downcase}[0]
+          if article
+            edit = article.latestApprovedEdit || article
+            approved_edits = article.approvedEdits || [article]
+            all_edits = article.editsSorted || [article]
+            heading = article.heading.name
+            html = edit.html_content
+          end
         end
+        articles = game.headings.map{|h| h.articles}
       end
       if edit
         render json: {
           success: true,
           markdown: edit.content,
-          html: edit.html_content,
+          html: html,
           title: edit.title,
           approvedEdits: approved_edits,
           all_edits: all_edits,
           headings: game.headings,
-          heading: article.heading.name,
+          heading: heading,
           articles: articles,
           game: game,
           moderator: moderator,
@@ -70,10 +83,16 @@ class Api::V1::ArticlesController < ApplicationController
       game = Slug.find_by(name: params[:game]).game
       heading = game.headings.select{|h| h.name == params[:heading]}[0]
       status = params[:moderator] ? "approved" : "pending"
-      article = Article.new(title: params[:title], heading_id: heading.id, content: params[:content], html_content: params[:html_content])
-      article.save
-      slug = ArticleSlug.create(article_id: article.id, name: params[:slug])
-      newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
+      if params[:title] == "home"
+        article = Home.new(title: params[:title], game_id: game.id, content: params[:content], html_content: params[:html_content])
+        article.save
+        newEdit = HomeEdit.new(home_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
+      else
+        article = Article.new(title: params[:title], heading_id: heading.id, content: params[:content], html_content: params[:html_content])
+        article.save
+        slug = ArticleSlug.create(article_id: article.id, name: params[:slug])
+        newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
+      end
       if newEdit.save
         article = article.latestApprovedEdit || article
         render json: {

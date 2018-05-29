@@ -1,0 +1,2 @@
+class HomeEditsController < ApplicationController
+end

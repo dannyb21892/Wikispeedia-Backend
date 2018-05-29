@@ -5,6 +5,7 @@ class Game < ApplicationRecord
   has_many :headings
   has_many :articles, through: :headings
   has_one :slug
+  has_one :home
 
   validates :title, presence: true
   validates :release_year, numericality: { only_integer: true, less_than_or_equal_to: Date.today.year, greater_than_or_equal_to: 1960 }
