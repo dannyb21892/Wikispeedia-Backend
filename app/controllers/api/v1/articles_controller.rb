@@ -6,10 +6,12 @@ class Api::V1::ArticlesController < ApplicationController
       if slug
         game = slug.game
         moderator = false
+        follower = false
         if whosAsking && whosAsking.games.include?(game)
           moderator = true
+          follower = !!whosAsking.followers.select{|f| f.game == game}[0]
         end
-        follower = !!whosAsking.followers.select{|f| f.game == game}[0]
+        home = false
         if params[:article].downcase === "home"
           article = game.home
           if article
@@ -17,7 +19,8 @@ class Api::V1::ArticlesController < ApplicationController
             approved_edits = article.approvedEdits || [article]
             all_edits = article.editsSorted || [article]
             heading = ""
-            html = edit.htmml_content
+            html = edit.html_content
+            home = true
           end
         else
           article = game.articles.select{|a| a.article_slug.name.downcase == params[:article].downcase}[0]
@@ -44,7 +47,8 @@ class Api::V1::ArticlesController < ApplicationController
           articles: articles,
           game: game,
           moderator: moderator,
-          follower: follower
+          follower: follower,
+          home: home
         }
       else
         render json: {
@@ -59,25 +63,49 @@ class Api::V1::ArticlesController < ApplicationController
       end
     elsif params[:type] == "updateArticle"
       game = Slug.find_by(name: params[:game]).game
-      article = game.articles.select{|a| a.title.downcase == params[:title].downcase}[0]
-      status = params[:moderator] ? "approved" : "pending"
-      newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: status)
-      slug = article.article_slug.name
-      if newEdit.save
-        puts newEdit
-        article = article.latestApprovedEdit || article
-        render json: {
-          success: true,
-          markdown: article.content,
-          html: article.html_content,
-          title: article.title,
-          slug: slug
-        }
+
+      if params[:home]
+        article = game.home
+        status = params[:moderator] ? "approved" : "pending"
+        newEdit = HomeEdit.new(home_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: status)
+        slug = "home"
+        if newEdit.save
+          puts newEdit
+          article = article.latestApprovedEdit || article
+          render json: {
+            success: true,
+            markdown: article.content,
+            html: article.html_content,
+            title: article.title,
+            slug: slug
+          }
+        else
+          render json: {
+            success: false,
+            errors: "Edit failed"
+          }
+        end
       else
-        render json: {
-          success: false,
-          errors: "Edit failed"
-        }
+        article = game.articles.select{|a| a.title.downcase == params[:title].downcase}[0]
+        status = params[:moderator] ? "approved" : "pending"
+        newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: status)
+        slug = article.article_slug.name
+        if newEdit.save
+          puts newEdit
+          article = article.latestApprovedEdit || article
+          render json: {
+            success: true,
+            markdown: article.content,
+            html: article.html_content,
+            title: article.title,
+            slug: slug
+          }
+        else
+          render json: {
+            success: false,
+            errors: "Edit failed"
+          }
+        end
       end
     elsif params[:type] == "newArticle"
       game = Slug.find_by(name: params[:game]).game

@@ -2,7 +2,7 @@ class Edit < ApplicationRecord
   belongs_to :article
 
   def self.allSortedApprovedEdits
-    edits = Edit.all.select{|edit| edit.status === "approved"}.sort_by{|edit| edit.created_at}.reverse
+    edits = Edit.all.select{|edit| edit.status === "approved" && edit.article}.sort_by{|edit| edit.created_at}.reverse
     output = []
     i = 0
     edits.each do |e|
