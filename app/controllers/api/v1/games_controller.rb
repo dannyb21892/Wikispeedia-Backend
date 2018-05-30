@@ -25,7 +25,8 @@ class Api::V1::GamesController < ApplicationController
       params[:headings].each do |heading|
         Heading.create(name: heading, game_id: newgame.id)
       end
-      puts "controller received slug #{params[:slug]}"
+      home = Home.create(game_id: newgame.id, title: "home", content: "", html_content: "")
+      HomeEdit.create(home_id: home.id, title: "home", content: "", html_content: "", status: "approved")
       newslug = Slug.make_unique(params[:slug], newgame)
       Slug.create(name: newslug, game_id: newgame.id)
 
