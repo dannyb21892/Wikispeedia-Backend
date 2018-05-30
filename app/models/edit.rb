@@ -1,5 +1,6 @@
 class Edit < ApplicationRecord
   belongs_to :article
+  belongs_to :user
 
   def self.allSortedApprovedEdits
     edits = Edit.all.select{|edit| edit.status === "approved" && edit.article}.sort_by{|edit| edit.created_at}.reverse

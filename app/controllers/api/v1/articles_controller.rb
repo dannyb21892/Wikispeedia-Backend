@@ -63,11 +63,11 @@ class Api::V1::ArticlesController < ApplicationController
       end
     elsif params[:type] == "updateArticle"
       game = Slug.find_by(name: params[:game]).game
-
+      creator = User.find_by(username: params[:user])
       if params[:home]
         article = game.home
         status = params[:moderator] ? "approved" : "pending"
-        newEdit = HomeEdit.new(home_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: status)
+        newEdit = HomeEdit.new(home_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: status, user_id: creator.id)
         slug = "home"
         if newEdit.save
           puts newEdit
@@ -88,7 +88,7 @@ class Api::V1::ArticlesController < ApplicationController
       else
         article = game.articles.select{|a| a.title.downcase == params[:title].downcase}[0]
         status = params[:moderator] ? "approved" : "pending"
-        newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: status)
+        newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: status, user_id: creator.id)
         slug = article.article_slug.name
         if newEdit.save
           puts newEdit
@@ -109,17 +109,18 @@ class Api::V1::ArticlesController < ApplicationController
       end
     elsif params[:type] == "newArticle"
       game = Slug.find_by(name: params[:game]).game
+      creator = User.find_by(username: params[:user])
       heading = game.headings.select{|h| h.name == params[:heading]}[0]
       status = params[:moderator] ? "approved" : "pending"
       if params[:title] == "home"
         article = Home.new(title: params[:title], game_id: game.id, content: params[:content], html_content: params[:html_content])
         article.save
-        newEdit = HomeEdit.new(home_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
+        newEdit = HomeEdit.new(home_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved", user_id: creator.id)
       else
         article = Article.new(title: params[:title], heading_id: heading.id, content: params[:content], html_content: params[:html_content])
         article.save
         slug = ArticleSlug.create(article_id: article.id, name: params[:slug])
-        newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved")
+        newEdit = Edit.new(article_id: article.id, title: params[:title], html_content: params[:html_content], content: params[:content], status: "approved", user_id: creator.id)
       end
       if newEdit.save
         article = article.latestApprovedEdit || article

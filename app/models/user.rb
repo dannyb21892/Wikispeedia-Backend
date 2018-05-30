@@ -3,6 +3,10 @@ class User < ApplicationRecord
   has_many :moderators
   has_many :games, through: :moderators
   has_many :followers
+  has_many :edits
+  has_many :home_edits
+  has_many :articles, through: :edits
+  has_many :homes, through: :edits
   validates :username, presence: true
   validates :username, uniqueness: true
   validates :username, length: { minimum: 3, maximum: 20 }, on: :create

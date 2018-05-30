@@ -26,7 +26,8 @@ class Api::V1::GamesController < ApplicationController
         Heading.create(name: heading, game_id: newgame.id)
       end
       home = Home.create(game_id: newgame.id, title: "home", content: "", html_content: "")
-      HomeEdit.create(home_id: home.id, title: "home", content: "", html_content: "", status: "approved")
+      creator = User.find_by(username: params[:moderators].last)
+      HomeEdit.create(home_id: home.id, title: "home", content: "", html_content: "", status: "approved", user_id: creator.id)
       newslug = Slug.make_unique(params[:slug], newgame)
       Slug.create(name: newslug, game_id: newgame.id)
 

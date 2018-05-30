@@ -50,19 +50,39 @@ class Api::V1::UsersController < ApplicationController
         errors: "User already exists with username '#{params[:username]}'"
       }
     else
-      user = User.new(username: params[:username], password: params[:password])
-      if user.save
-        render json: {
-          logged_in: true,
-          auth: user.password_digest,
-          errors: ""
-        }
+      if params[:username].split("").select{|a| "1234567890-_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM".include?(a)}.join("") == params[:username]
+        user = User.new(username: params[:username], password: params[:password])
+        if user.save
+          render json: {
+            logged_in: true,
+            auth: user.password_digest,
+            errors: ""
+          }
+        else
+          render json: {
+            logged_in: false,
+            errors: user.errors.full_messages
+          }
+        end
       else
         render json: {
           logged_in: false,
-          errors: user.errors.full_messages
+          errors: "Username contains invalid characters. Stick to alphanumeric characters, dashes and underscores."
         }
       end
+    end
+  end
+
+  def destroy
+    user = User.find_by(username: params[:id])
+    if user.destroy
+      render json: {
+        success: true
+      }
+    else
+      render json: {
+        success: false
+      }
     end
   end
 end
