@@ -14,12 +14,17 @@ class User < ApplicationRecord
 
   def notifications
     output = []
-    self.games.each do |g|
+    self.moderators.map{|m| m.game}.each do |g|
       g.articles.each do |a|
         a.editsSorted.each do |e|
           if e.status == "pending"
-            output.push({edit: e, url: "http://localhost:3001/games/#{e.article.heading.game.slug.name}/"})
+            output.push({edit: e, url: "http://localhost:3001/games/#{g.slug.name}/#{a.article_slug.name}"})
           end
+        end
+      end
+      g.home.home_edits.each do |e|
+        if e.status == "pending"
+          output.push({edit: e, url: "http://localhost:3001/games/#{g.slug.name}/home"})
         end
       end
     end

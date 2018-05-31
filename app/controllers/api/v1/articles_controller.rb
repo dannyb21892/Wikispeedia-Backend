@@ -7,9 +7,11 @@ class Api::V1::ArticlesController < ApplicationController
         game = slug.game
         moderator = false
         follower = false
-        if whosAsking && whosAsking.games.include?(game)
-          moderator = true
+        if whosAsking && whosAsking.followers.where(game_id: game.id).length > 0
           follower = !!whosAsking.followers.select{|f| f.game == game}[0]
+        end
+        if whosAsking && whosAsking.moderators.where(game_id: game.id).length > 0
+          moderator = true
         end
         home = false
         if params[:article].downcase === "home"
@@ -34,6 +36,7 @@ class Api::V1::ArticlesController < ApplicationController
         end
         articles = game.headings.map{|h| h.articles}
       end
+
       if edit
         render json: {
           success: true,
@@ -146,7 +149,11 @@ class Api::V1::ArticlesController < ApplicationController
   end
 
   def update
-    edit = Edit.find(params[:id])
+    if params[:home]
+      edit = HomeEdit.find(params[:id])
+    else
+      edit = Edit.find(params[:id])
+    end
     edit.status = params[:type]
     edit.save
     render json: {

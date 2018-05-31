@@ -20,7 +20,9 @@ class Api::V1::FollowersController < ApplicationController
           success: !!follower
         }
       elsif params[:type] == "remFollower"
-        Follower.find_by(user_id: user.id, game_id: game.id).destroy
+        Follower.all.where(user_id: user.id, game_id: game.id).each do |f|
+          f.destroy
+        end
         render json: {
           success: true
         }
